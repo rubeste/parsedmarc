@@ -223,14 +223,15 @@ class MSGraphConnection(MailboxConnection):
         if parent_folder_id is not None:
             sub_url = f'/{parent_folder_id}/childFolders'
         url = f'/users/{self.mailbox_name}/mailFolders{sub_url}'
-        folders_resp = self._client.get(url)
+        filter = f"?$filter=displayName eq '{folder_name}'"
+        folders_resp = self._client.get(url + filter)
         if folders_resp.status_code != 200:
             raise RuntimeWarning(f"Failed to list folders."
                                  f"{folders_resp.json()}")
-        folders = folders_resp.json()['value']
+        folders:list = folders_resp.json()['value']
         matched_folders = [folder for folder in folders
                            if folder['displayName'] == folder_name]
-        if len(matched_folders) == 0:
+        if len(matched_folders) == 0 :
             raise RuntimeError(f"folder {folder_name} not found")
         selected_folder = matched_folders[0]
         return selected_folder['id']
